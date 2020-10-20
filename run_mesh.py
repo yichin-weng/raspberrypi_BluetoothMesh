@@ -6,10 +6,8 @@ import sys
 """
 
 def setup_mesh():
-	proc = subprocess.run(["meshctl", "help"], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-	print(proc.stdout.decode("utf8"))
+    proc = subprocess.run(["meshctl", "help"], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    print(proc.stdout.decode("utf8"))
 
-
-print(sys.argv)
-
-
+if __name__ == '__main__':
+    setup_mesh()
