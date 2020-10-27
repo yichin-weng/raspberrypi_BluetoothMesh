@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import asyncio
 from multiprocessing import Pool, Process
 from joblib import Parallel, delayed
 import multiprocessing as mp
@@ -116,26 +117,24 @@ def setup_mesh():
     print(proc.stdout.decode("utf8"))
 
 
-def test(que):
-    proc = subprocess.run(["dir"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+def test(que, cmd):
+    proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    print(proc.stdout.decode("cp932"))
     que.put(proc.stdout.decode("cp932"))
 
 
-def open_python_shell(que):
-    proc = subprocess.run(["python"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    que.put(proc.stdout.decode("cp932"))
+async def open_python_shell(cmd):
+    proc = await asyncio.create_subprocess_shell(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = await proc.communicate()
+
+    print(f'[stdout])
 
 
 if __name__ == '__main__':
     mp.get_context("spawn")
     q = mp.Queue()  # It is used to store the tasks which need to be coped with
     p1 = Process(target=open_python_shell, args=(q,))
-    p2 = Process(target=test, args=(q,))
+    p2 = Process(target=test, args=(q, "python -V"))
+    p3 = Process(target=test, args=(q, "dir"))
     p2.start()
-    task = [q.get()]
-    print(task[0])
-    p2.join(timeout=1)
-    p1.start()
-    task.append(q.get())
-    print(task[1])
-    print(task[0])
+    p3.start()
